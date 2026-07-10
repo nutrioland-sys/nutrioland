@@ -1,0 +1,30 @@
+[
+  {
+    "slug": "fruits",
+    "name": "Fruits",
+    "description": "Sweet, juicy & handpicked",
+    "image": "https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=800&auto=format&fit=crop",
+    "imageAlt": "Placeholder photo of assorted fresh fruits"
+  },
+  {
+    "slug": "vegetables",
+    "name": "Vegetables",
+    "description": "Farm-fresh daily produce",
+    "image": "https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=800&auto=format&fit=crop",
+    "imageAlt": "Placeholder photo of assorted fresh vegetables"
+  },
+  {
+    "slug": "seasonal-exotic",
+    "name": "Seasonal & Exotic",
+    "description": "Rare finds, in season now",
+    "image": "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?q=80&w=800&auto=format&fit=crop",
+    "imageAlt": "Placeholder photo of a fresh pineapple"
+  },
+  {
+    "slug": "combos-baskets",
+    "name": "Combos & Baskets",
+    "description": "Curated bundles, better value",
+    "image": "https://images.unsplash.com/photo-1506484381205-f7945653044d?q=80&w=800&auto=format&fit=crop",
+    "imageAlt": "Placeholder photo of a mixed vegetable basket"
+  }
+]

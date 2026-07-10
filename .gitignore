@@ -1,0 +1,42 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# live admin-editable data (orders, prices, content settings) — these change
+# through the admin panel on the running server and must never be reverted
+# or overwritten by a code deploy/rollback. Seeded once in the initial commit,
+# then untracked (see deployment notes) so future edits stay local to the server.
+/data/orders.json
+/data/products.json
+/data/categories.json
+/data/hero.json
+/data/analytics.json
+/data/announcement.json
+
+# vercel
+.vercel
+
+# machine-specific Claude Code settings, not project config
+.claude/settings.local.json
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
