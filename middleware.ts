@@ -17,7 +17,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/categories") ||
     pathname.startsWith("/api/announcement") ||
     pathname.startsWith("/api/analytics") ||
-    pathname.startsWith("/api/hero")
+    pathname.startsWith("/api/hero") ||
+    pathname.startsWith("/api/customers")
   ) {
     if (!isAuthed) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -45,5 +46,6 @@ export const config = {
     "/api/announcement/:path*",
     "/api/analytics/:path*",
     "/api/hero/:path*",
+    "/api/customers/:path*",
   ],
 };
