@@ -50,9 +50,8 @@ export default function AdminCustomersPage() {
           Loading customers…
         </p>
       ) : customers.length === 0 ? (
-        {/* eslint-disable-next-line react/no-unescaped-entities */}
         <p className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm">
-          No customers yet — they'll show up here once orders start coming in.
+          No customers yet. Customers will show up here once orders start coming in.
         </p>
       ) : (
         <>
