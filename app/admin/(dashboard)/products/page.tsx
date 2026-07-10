@@ -195,7 +195,7 @@ export default function AdminProductsPage() {
                       {product.unit} · <span className="font-mono">{product.sku}</span>
                     </p>
                     <p className="text-xs capitalize text-slate-500">
-                      {product.category.replace("-", " ")}
+                      {product.categories.map((c) => c.replace("-", " ")).join(", ")}
                     </p>
                   </div>
                 </div>
@@ -293,7 +293,7 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-slate-600">{product.sku}</td>
                     <td className="px-4 py-3 capitalize text-slate-600">
-                      {product.category.replace("-", " ")}
+                      {product.categories.map((c) => c.replace("-", " ")).join(", ")}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">

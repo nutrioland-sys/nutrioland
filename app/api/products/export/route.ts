@@ -15,7 +15,7 @@ export async function GET() {
   sheet.columns = [
     { header: "SKU", key: "sku", width: 14 },
     { header: "Name", key: "name", width: 24 },
-    { header: "Category", key: "category", width: 18 },
+    { header: "Categories", key: "categories", width: 24 },
     { header: "Price", key: "price", width: 10 },
     { header: "Unit", key: "unit", width: 10 },
     { header: "Discount %", key: "discountPercent", width: 12 },
@@ -31,7 +31,7 @@ export async function GET() {
     sheet.addRow({
       sku: product.sku,
       name: product.name,
-      category: product.category,
+      categories: product.categories.join(", "),
       price: product.price,
       unit: product.unit,
       discountPercent: product.discountPercent ?? 0,

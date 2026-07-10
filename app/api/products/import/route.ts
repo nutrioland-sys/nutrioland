@@ -2,13 +2,12 @@ import ExcelJS from "exceljs";
 import { NextResponse } from "next/server";
 import { getCategories } from "@/lib/server/categories-store";
 import { upsertProductBySku } from "@/lib/server/products-store";
-import type { ProductCategory } from "@/lib/types";
 
 interface ParsedRow {
   rowNumber: number;
   sku: string;
   name: string;
-  category: string;
+  categories: string[];
   price: number;
   unit: string;
   discountPercent: number;
@@ -56,7 +55,10 @@ export async function POST(request: Request) {
       rowNumber,
       sku: cellText(row.getCell(1).value),
       name: cellText(row.getCell(2).value),
-      category: cellText(row.getCell(3).value),
+      categories: cellText(row.getCell(3).value)
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean),
       price: Number(row.getCell(4).value ?? 0),
       unit: cellText(row.getCell(5).value),
       discountPercent: Number(row.getCell(6).value ?? 0),
@@ -76,15 +78,18 @@ export async function POST(request: Request) {
       errors.push(`Row ${row.rowNumber}: missing SKU or Name — skipped.`);
       continue;
     }
-    if (!validCategories.has(row.category)) {
-      errors.push(`Row ${row.rowNumber}: unknown category "${row.category}" — skipped.`);
+    const unknownCategory = row.categories.find((c) => !validCategories.has(c));
+    if (row.categories.length === 0 || unknownCategory) {
+      errors.push(
+        `Row ${row.rowNumber}: unknown or missing category "${unknownCategory ?? ""}" — skipped.`
+      );
       continue;
     }
 
     await upsertProductBySku({
       sku: row.sku,
       name: row.name,
-      category: row.category as ProductCategory,
+      categories: row.categories,
       price: row.price,
       unit: row.unit,
       discountPercent: Math.min(Math.max(row.discountPercent || 0, 0), 100),

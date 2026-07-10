@@ -15,8 +15,18 @@ function slugify(name: string): string {
   );
 }
 
+// Older saved data (before multi-category support) has a single `category`
+// string field instead of `categories`. Upgrade it on read so existing
+// live data doesn't break when this field shape changes.
+function migrateLegacyCategory(product: Product & { category?: string }): Product {
+  if (product.categories) return product;
+  const { category, ...rest } = product;
+  return { ...rest, categories: category ? [category] : [] };
+}
+
 export async function getProducts(): Promise<Product[]> {
-  return readJsonStore(FILE, productsSeed as Product[]);
+  const products = await readJsonStore(FILE, productsSeed as Product[]);
+  return products.map(migrateLegacyCategory);
 }
 
 export async function getProduct(id: string): Promise<Product | null> {

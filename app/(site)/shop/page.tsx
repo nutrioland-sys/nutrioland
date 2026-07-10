@@ -27,7 +27,7 @@ export default async function ShopPage({
   const allProducts = await getProducts();
   const visibleProducts = allProducts.filter((product) => product.isActive);
   const products = activeCategory
-    ? visibleProducts.filter((product) => product.category === activeCategory)
+    ? visibleProducts.filter((product) => product.categories.includes(activeCategory))
     : visibleProducts;
 
   const activeCategoryName = categories.find((category) => category.slug === activeCategory)?.name;

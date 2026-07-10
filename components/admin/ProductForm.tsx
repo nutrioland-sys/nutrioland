@@ -7,7 +7,7 @@ import type { Category, Product, ProductCategory } from "@/lib/types";
 export interface ProductFormValues {
   sku: string;
   name: string;
-  category: ProductCategory;
+  categories: ProductCategory[];
   price: number;
   unit: string;
   image: string;
@@ -31,8 +31,8 @@ export default function ProductForm({
 }) {
   const [sku, setSku] = useState(initialValue?.sku ?? "");
   const [name, setName] = useState(initialValue?.name ?? "");
-  const [category, setCategory] = useState<ProductCategory>(
-    initialValue?.category ?? (categories[0]?.slug as ProductCategory)
+  const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>(
+    initialValue?.categories ?? (categories[0] ? [categories[0].slug] : [])
   );
   const [price, setPrice] = useState(String(initialValue?.price ?? ""));
   const [unit, setUnit] = useState(initialValue?.unit ?? "kg");
@@ -44,12 +44,19 @@ export default function ProductForm({
   const [featured, setFeatured] = useState(initialValue?.featured ?? false);
   const [isActive, setIsActive] = useState(initialValue?.isActive ?? true);
 
+  function toggleCategory(slug: ProductCategory) {
+    setSelectedCategories((current) =>
+      current.includes(slug) ? current.filter((c) => c !== slug) : [...current, slug]
+    );
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (selectedCategories.length === 0) return;
     onSave({
       sku,
       name,
-      category,
+      categories: selectedCategories,
       price: Number(price) || 0,
       unit,
       image,
@@ -97,24 +104,36 @@ export default function ProductForm({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="product-category" className="text-sm font-semibold text-slate-800">
-            Category
-          </label>
-          <select
-            id="product-category"
-            value={category}
-            onChange={(event) => setCategory(event.target.value as ProductCategory)}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-          >
-            {categories.map((cat) => (
-              <option key={cat.slug} value={cat.slug}>
+      <div>
+        <p className="text-sm font-semibold text-slate-800">Categories</p>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Select every category this product should appear under.
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {categories.map((cat) => {
+            const isSelected = selectedCategories.includes(cat.slug);
+            return (
+              <button
+                key={cat.slug}
+                type="button"
+                onClick={() => toggleCategory(cat.slug)}
+                aria-pressed={isSelected}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  isSelected
+                    ? "border-brand bg-brand text-white"
+                    : "border-slate-200 text-slate-600 hover:border-brand hover:text-brand"
+                }`}
+              >
                 {cat.name}
-              </option>
-            ))}
-          </select>
+              </button>
+            );
+          })}
         </div>
+        {selectedCategories.length === 0 && (
+          <p className="mt-1.5 text-xs font-medium text-red-600">
+            Select at least one category.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

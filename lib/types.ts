@@ -1,10 +1,10 @@
-export type ProductCategory = "fruits" | "vegetables" | "seasonal-exotic" | "combos-baskets";
+export type ProductCategory = string;
 
 export interface Product {
   id: string;
   sku: string;
   name: string;
-  category: ProductCategory;
+  categories: ProductCategory[];
   price: number;
   unit: string;
   image: string;

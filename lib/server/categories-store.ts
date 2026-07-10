@@ -13,7 +13,7 @@ async function saveCategories(categories: Category[]): Promise<void> {
   await writeJsonStore(FILE, categories);
 }
 
-// Slugs are fixed (they're the join key to Product.category), so this only
+// Slugs are fixed (they're the join key to Product.categories), so this only
 // ever updates an existing category's display name/description/image — it
 // never creates or deletes one.
 export async function updateCategory(
