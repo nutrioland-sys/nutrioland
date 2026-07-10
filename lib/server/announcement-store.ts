@@ -1,13 +1,18 @@
 import "server-only";
-import { promises as fs } from "fs";
-import path from "path";
 import type { AnnouncementSettings } from "@/lib/types";
+import { readJsonStore, writeJsonStore } from "./json-store";
 
-const DATA_FILE = path.join(process.cwd(), "data", "announcement.json");
+const FILE = "announcement.json";
+const DEFAULT_ANNOUNCEMENT: AnnouncementSettings = {
+  enabled: true,
+  messages: [
+    "🎉 20% off your first order — use code FRESH20",
+    "🚚 Free delivery on orders over Rs. 1,500",
+  ],
+};
 
 export async function getAnnouncement(): Promise<AnnouncementSettings> {
-  const raw = await fs.readFile(DATA_FILE, "utf-8");
-  return JSON.parse(raw) as AnnouncementSettings;
+  return readJsonStore(FILE, DEFAULT_ANNOUNCEMENT);
 }
 
 export async function updateAnnouncement(
@@ -15,6 +20,6 @@ export async function updateAnnouncement(
 ): Promise<AnnouncementSettings> {
   const current = await getAnnouncement();
   const next: AnnouncementSettings = { ...current, ...patch };
-  await fs.writeFile(DATA_FILE, JSON.stringify(next, null, 2), "utf-8");
+  await writeJsonStore(FILE, next);
   return next;
 }

@@ -1,9 +1,9 @@
 import "server-only";
-import { promises as fs } from "fs";
-import path from "path";
 import type { Product } from "@/lib/types";
+import { readJsonStore, writeJsonStore } from "./json-store";
+import productsSeed from "./seed/products-seed.json";
 
-const DATA_FILE = path.join(process.cwd(), "data", "products.json");
+const FILE = "products.json";
 
 function slugify(name: string): string {
   return (
@@ -16,8 +16,7 @@ function slugify(name: string): string {
 }
 
 export async function getProducts(): Promise<Product[]> {
-  const raw = await fs.readFile(DATA_FILE, "utf-8");
-  return JSON.parse(raw) as Product[];
+  return readJsonStore(FILE, productsSeed as Product[]);
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
@@ -26,7 +25,7 @@ export async function getProduct(id: string): Promise<Product | null> {
 }
 
 async function saveProducts(products: Product[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(products, null, 2), "utf-8");
+  await writeJsonStore(FILE, products);
 }
 
 export async function createProduct(input: Omit<Product, "id">): Promise<Product> {

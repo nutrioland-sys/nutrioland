@@ -1,17 +1,16 @@
 import "server-only";
-import { promises as fs } from "fs";
-import path from "path";
 import type { Category } from "@/lib/types";
+import { readJsonStore, writeJsonStore } from "./json-store";
+import categoriesSeed from "./seed/categories-seed.json";
 
-const DATA_FILE = path.join(process.cwd(), "data", "categories.json");
+const FILE = "categories.json";
 
 export async function getCategories(): Promise<Category[]> {
-  const raw = await fs.readFile(DATA_FILE, "utf-8");
-  return JSON.parse(raw) as Category[];
+  return readJsonStore(FILE, categoriesSeed as Category[]);
 }
 
 async function saveCategories(categories: Category[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(categories, null, 2), "utf-8");
+  await writeJsonStore(FILE, categories);
 }
 
 // Slugs are fixed (they're the join key to Product.category), so this only

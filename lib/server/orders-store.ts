@@ -1,13 +1,11 @@
 import "server-only";
-import { promises as fs } from "fs";
-import path from "path";
 import type { OrderRecord } from "@/lib/types";
+import { readJsonStore, writeJsonStore } from "./json-store";
 
-const DATA_FILE = path.join(process.cwd(), "data", "orders.json");
+const FILE = "orders.json";
 
 export async function getOrders(): Promise<OrderRecord[]> {
-  const raw = await fs.readFile(DATA_FILE, "utf-8");
-  return JSON.parse(raw) as OrderRecord[];
+  return readJsonStore(FILE, [] as OrderRecord[]);
 }
 
 export async function getOrder(id: string): Promise<OrderRecord | null> {
@@ -16,7 +14,7 @@ export async function getOrder(id: string): Promise<OrderRecord | null> {
 }
 
 async function saveOrders(orders: OrderRecord[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(orders, null, 2), "utf-8");
+  await writeJsonStore(FILE, orders);
 }
 
 export async function createOrder(
