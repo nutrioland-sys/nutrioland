@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { HeroSettings } from "@/lib/types";
-import DeliveryChecker from "./DeliveryChecker";
 
 export default function Hero({ hero }: { hero: HeroSettings }) {
   const images = hero.images;
@@ -47,10 +46,6 @@ export default function Hero({ hero }: { hero: HeroSettings }) {
             >
               How it works
             </Link>
-          </div>
-
-          <div className="mt-8">
-            <DeliveryChecker />
           </div>
         </div>
 
