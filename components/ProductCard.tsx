@@ -58,7 +58,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <button
             type="button"
             onClick={() => addItem(product, 1)}
-            className="flex w-fit items-center justify-center gap-1.5 rounded-lg bg-brand px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-brand-dark"
+            className="flex w-fit min-w-[7.5rem] items-center justify-center gap-1.5 rounded-lg bg-brand px-6 py-1.5 text-sm font-semibold text-white transition hover:bg-brand-dark"
           >
             <CartIcon className="h-4 w-4" />
             Add
