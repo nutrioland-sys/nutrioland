@@ -21,16 +21,28 @@ const TABS = [
   { id: "addresses", label: "Addresses" },
   { id: "orders", label: "Order History" },
   { id: "offers", label: "Offers" },
+  { id: "security", label: "Security" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<TabId>("profile");
-  const { isLoaded } = useAccount();
+  const { isLoaded, isLoggedIn } = useAccount();
 
   if (!isLoaded) {
     return null;
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <section className="py-10 sm:py-14">
+        <Container>
+          <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">My Account</h1>
+          <SignedOutPanel />
+        </Container>
+      </section>
+    );
   }
 
   return (
@@ -63,22 +75,330 @@ export default function AccountPage() {
           {activeTab === "addresses" && <AddressesTab />}
           {activeTab === "orders" && <OrdersTab />}
           {activeTab === "offers" && <OffersTab />}
+          {activeTab === "security" && <SecurityTab />}
         </div>
       </Container>
     </section>
   );
 }
 
-function ProfileTab() {
-  const { profile, updateProfile } = useAccount();
-  const [name, setName] = useState(profile.name);
-  const [phone, setPhone] = useState(profile.phone);
-  const [email, setEmail] = useState(profile.email);
-  const [savedMessage, setSavedMessage] = useState(false);
+function SignedOutPanel() {
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  return (
+    <div className="mt-8 max-w-lg">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setMode("signin")}
+          className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+            mode === "signin"
+              ? "border-brand bg-brand text-white"
+              : "border-slate-200 text-slate-600 hover:border-brand hover:text-brand"
+          }`}
+        >
+          Sign In
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("signup")}
+          className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+            mode === "signup"
+              ? "border-brand bg-brand text-white"
+              : "border-slate-200 text-slate-600 hover:border-brand hover:text-brand"
+          }`}
+        >
+          Sign Up
+        </button>
+      </div>
+
+      <div className="mt-4">
+        {mode === "signin" && <SignInForm onForgotPassword={() => setMode("forgot")} />}
+        {mode === "signup" && <SignUpForm />}
+        {mode === "forgot" && <ForgotPasswordForm onBack={() => setMode("signin")} />}
+      </div>
+    </div>
+  );
+}
+
+function SignInForm({ onForgotPassword }: { onForgotPassword: () => void }) {
+  const { login } = useAccount();
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    updateProfile({ name, phone, email });
+    setIsSubmitting(true);
+    setError(null);
+    const result = await login(phone, password);
+    setIsSubmitting(false);
+    if (result.error) setError(result.error);
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-card sm:p-6"
+    >
+      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      <div>
+        <label htmlFor="account-signin-phone" className="text-sm font-semibold text-slate-800">
+          Phone number
+        </label>
+        <input
+          id="account-signin-phone"
+          type="tel"
+          required
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          placeholder="03xx xxxxxxx"
+          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      <div>
+        <label htmlFor="account-signin-password" className="text-sm font-semibold text-slate-800">
+          Password
+        </label>
+        <input
+          id="account-signin-password"
+          type="password"
+          required
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={onForgotPassword}
+        className="text-xs font-semibold text-brand-dark hover:underline"
+      >
+        Forgot your password?
+      </button>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full rounded-full bg-brand py-3 text-sm font-semibold text-white shadow-card transition hover:bg-brand-dark disabled:opacity-60"
+      >
+        {isSubmitting ? "Signing in…" : "Sign In"}
+      </button>
+    </form>
+  );
+}
+
+function SignUpForm() {
+  const { signup } = useAccount();
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    const result = await signup({ name, phone, email: email || undefined, password });
+    setIsSubmitting(false);
+    if (result.error) setError(result.error);
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-card sm:p-6"
+    >
+      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      <div>
+        <label htmlFor="account-signup-name" className="text-sm font-semibold text-slate-800">
+          Full name
+        </label>
+        <input
+          id="account-signup-name"
+          required
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      <div>
+        <label htmlFor="account-signup-phone" className="text-sm font-semibold text-slate-800">
+          Phone number
+        </label>
+        <input
+          id="account-signup-phone"
+          type="tel"
+          required
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          placeholder="03xx xxxxxxx"
+          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      <div>
+        <label htmlFor="account-signup-email" className="text-sm font-semibold text-slate-800">
+          Email <span className="font-normal text-slate-400">(optional)</span>
+        </label>
+        <input
+          id="account-signup-email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      <div>
+        <label htmlFor="account-signup-password" className="text-sm font-semibold text-slate-800">
+          Password
+        </label>
+        <input
+          id="account-signup-password"
+          type="password"
+          required
+          minLength={6}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="At least 6 characters"
+          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full rounded-full bg-brand py-3 text-sm font-semibold text-white shadow-card transition hover:bg-brand-dark disabled:opacity-60"
+      >
+        {isSubmitting ? "Creating account…" : "Create Account"}
+      </button>
+    </form>
+  );
+}
+
+function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    const response = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, phone, newPassword }),
+    });
+    setIsSubmitting(false);
+    if (response.ok) {
+      setSuccess(true);
+    } else {
+      const body = await response.json();
+      setError(body.error ?? "Something went wrong.");
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="rounded-2xl border border-brand/20 bg-brand-50 p-5 text-sm font-medium text-brand-dark">
+        Password updated. You can now sign in with your new password.
+        <button
+          type="button"
+          onClick={onBack}
+          className="mt-3 block text-sm font-semibold text-brand-dark hover:underline"
+        >
+          Back to sign in
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-card sm:p-6"
+    >
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-xs font-semibold text-brand-dark hover:underline"
+      >
+        &larr; Back to sign in
+      </button>
+      <p className="text-sm text-slate-600">
+        Enter the phone number and exact name on your account to set a new password.
+      </p>
+      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+      <div>
+        <label htmlFor="reset-phone" className="text-sm font-semibold text-slate-800">
+          Phone number
+        </label>
+        <input
+          id="reset-phone"
+          type="tel"
+          required
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      <div>
+        <label htmlFor="reset-name" className="text-sm font-semibold text-slate-800">
+          Full name on account
+        </label>
+        <input
+          id="reset-name"
+          required
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      <div>
+        <label htmlFor="reset-new-password" className="text-sm font-semibold text-slate-800">
+          New password
+        </label>
+        <input
+          id="reset-new-password"
+          type="password"
+          required
+          minLength={6}
+          value={newPassword}
+          onChange={(event) => setNewPassword(event.target.value)}
+          placeholder="At least 6 characters"
+          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full rounded-full bg-brand py-3 text-sm font-semibold text-white shadow-card transition hover:bg-brand-dark disabled:opacity-60"
+      >
+        {isSubmitting ? "Updating…" : "Set New Password"}
+      </button>
+    </form>
+  );
+}
+
+function ProfileTab() {
+  const { customer, updateProfile } = useAccount();
+  const [name, setName] = useState(customer?.name ?? "");
+  const [email, setEmail] = useState(customer?.email ?? "");
+  const [savedMessage, setSavedMessage] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    const result = await updateProfile({ name, email });
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
     setSavedMessage(true);
     window.setTimeout(() => setSavedMessage(false), 2000);
   }
@@ -88,10 +408,7 @@ function ProfileTab() {
       onSubmit={handleSubmit}
       className="max-w-lg space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-card sm:p-6"
     >
-      <p className="text-sm text-slate-600">
-        Saved here on this device so your details are ready next time you order — no account
-        or password needed.
-      </p>
+      {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
       <div>
         <label htmlFor="profile-name" className="text-sm font-semibold text-slate-800">
@@ -113,11 +430,13 @@ function ProfileTab() {
         <input
           id="profile-phone"
           type="tel"
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          placeholder="03xx xxxxxxx"
-          className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+          value={customer?.phone ?? ""}
+          readOnly
+          className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-500"
         />
+        <p className="mt-1 text-xs text-slate-500">
+          Your phone number is your sign-in ID and can&apos;t be changed here.
+        </p>
       </div>
 
       <div>
@@ -152,17 +471,18 @@ function ProfileTab() {
 }
 
 function AddressesTab() {
-  const { addresses, addAddress, updateAddress, removeAddress, setDefaultAddress } = useAccount();
+  const { customer, addAddress, updateAddress, removeAddress, setDefaultAddress } = useAccount();
+  const addresses = customer?.addresses ?? [];
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
 
   const editingAddress =
     editingId && editingId !== "new" ? addresses.find((a) => a.id === editingId) : undefined;
 
-  function handleSave(address: Omit<SavedAddress, "id">) {
+  async function handleSave(address: Omit<SavedAddress, "id">) {
     if (editingId && editingId !== "new") {
-      updateAddress(editingId, address);
+      await updateAddress(editingId, address);
     } else {
-      addAddress(address);
+      await addAddress(address);
     }
     setEditingId(null);
   }
@@ -239,7 +559,7 @@ function AddressesTab() {
       )}
 
       {editingId === "new" ? (
-        <AddressForm onSave={handleSave} onCancel={() => setEditingId(null)} />
+        <AddressForm initialValue={editingAddress} onSave={handleSave} onCancel={() => setEditingId(null)} />
       ) : (
         <button
           type="button"
@@ -367,6 +687,98 @@ function OffersTab() {
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SecurityTab() {
+  const { logout } = useAccount();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    const response = await fetch("/api/auth/change-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    setIsSubmitting(false);
+    if (response.ok) {
+      setCurrentPassword("");
+      setNewPassword("");
+      setSavedMessage(true);
+      window.setTimeout(() => setSavedMessage(false), 2000);
+    } else {
+      const body = await response.json();
+      setError(body.error ?? "Something went wrong.");
+    }
+  }
+
+  return (
+    <div className="max-w-lg space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-card sm:p-6"
+      >
+        <h2 className="text-base font-semibold text-slate-900">Change password</h2>
+        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+        <div>
+          <label htmlFor="current-password" className="text-sm font-semibold text-slate-800">
+            Current password
+          </label>
+          <input
+            id="current-password"
+            type="password"
+            required
+            value={currentPassword}
+            onChange={(event) => setCurrentPassword(event.target.value)}
+            className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+          />
+        </div>
+        <div>
+          <label htmlFor="new-password" className="text-sm font-semibold text-slate-800">
+            New password
+          </label>
+          <input
+            id="new-password"
+            type="password"
+            required
+            minLength={6}
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            placeholder="At least 6 characters"
+            className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-card transition hover:bg-brand-dark disabled:opacity-60"
+          >
+            {isSubmitting ? "Updating…" : "Update Password"}
+          </button>
+          {savedMessage && (
+            <span className="flex items-center gap-1 text-sm font-medium text-brand-dark">
+              <CheckIcon className="h-4 w-4" /> Updated
+            </span>
+          )}
+        </div>
+      </form>
+
+      <button
+        type="button"
+        onClick={() => logout()}
+        className="rounded-full border border-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-red-300 hover:text-red-600"
+      >
+        Log Out
+      </button>
     </div>
   );
 }

@@ -76,6 +76,20 @@ export interface CustomerProfile {
   email: string;
 }
 
+export interface CustomerAccount {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  passwordHash: string;
+  passwordSalt: string;
+  addresses: SavedAddress[];
+  createdAt: string;
+}
+
+// Shape returned to the client — never includes password fields.
+export type PublicCustomerAccount = Omit<CustomerAccount, "passwordHash" | "passwordSalt">;
+
 export type OrderStatus = "Confirmed" | "On Road" | "Delivered" | "Cancelled";
 
 export interface OrderItem {

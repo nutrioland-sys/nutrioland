@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import { GtmBodyNoscript, GtmHeadScript, MetaPixelNoscript, MetaPixelScript } from "@/components/Analytics";
+import CartBar from "@/components/CartBar";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { AccountProvider } from "@/lib/account-context";
@@ -43,6 +44,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             <Header />
             <main className="flex flex-col">{children}</main>
             <Footer />
+            <CartBar />
           </CartProvider>
         </AccountProvider>
       </body>

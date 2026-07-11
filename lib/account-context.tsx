@@ -2,113 +2,186 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
   type ReactNode,
 } from "react";
-import type { CustomerProfile, OrderRecord, SavedAddress } from "./types";
+import type { OrderRecord, PublicCustomerAccount, SavedAddress } from "./types";
+
+export interface SignupInput {
+  name: string;
+  phone: string;
+  email?: string;
+  password: string;
+  address?: Omit<SavedAddress, "id">;
+}
 
 interface AccountContextValue {
-  profile: CustomerProfile;
-  updateProfile: (profile: CustomerProfile) => void;
-  addresses: SavedAddress[];
-  addAddress: (address: Omit<SavedAddress, "id">) => SavedAddress;
-  updateAddress: (id: string, patch: Partial<SavedAddress>) => void;
-  removeAddress: (id: string) => void;
-  setDefaultAddress: (id: string) => void;
-  orders: OrderRecord[];
-  recordOrder: (order: OrderRecord) => void;
+  customer: PublicCustomerAccount | null;
+  isLoggedIn: boolean;
   isLoaded: boolean;
+  login: (phone: string, password: string) => Promise<{ error?: string }>;
+  signup: (input: SignupInput) => Promise<{ error?: string }>;
+  logout: () => Promise<void>;
+  updateProfile: (patch: { name?: string; email?: string }) => Promise<{ error?: string }>;
+  addAddress: (address: Omit<SavedAddress, "id">) => Promise<{ error?: string }>;
+  updateAddress: (id: string, patch: Partial<SavedAddress>) => Promise<{ error?: string }>;
+  removeAddress: (id: string) => Promise<{ error?: string }>;
+  setDefaultAddress: (id: string) => Promise<{ error?: string }>;
+  orders: OrderRecord[];
+  refreshOrders: () => Promise<void>;
 }
 
 const AccountContext = createContext<AccountContextValue | undefined>(undefined);
-const STORAGE_KEY = "nutrioland-account";
 
-const EMPTY_PROFILE: CustomerProfile = { name: "", phone: "", email: "" };
-
-interface StoredAccount {
-  profile: CustomerProfile;
-  addresses: SavedAddress[];
-  orders: OrderRecord[];
+async function parseErrorResponse(response: Response): Promise<{ error?: string }> {
+  if (response.ok) return {};
+  try {
+    const body = await response.json();
+    return { error: body.error ?? "Something went wrong." };
+  } catch {
+    return { error: "Something went wrong." };
+  }
 }
 
 export function AccountProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfile] = useState<CustomerProfile>(EMPTY_PROFILE);
-  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [customer, setCustomer] = useState<PublicCustomerAccount | null>(null);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed: StoredAccount = JSON.parse(stored);
-        setProfile(parsed.profile ?? EMPTY_PROFILE);
-        setAddresses(parsed.addresses ?? []);
-        setOrders(parsed.orders ?? []);
-      }
-    } catch {
-      // Corrupted or inaccessible storage — start fresh.
+  const refreshOrders = useCallback(async () => {
+    const response = await fetch("/api/auth/orders");
+    if (response.ok) {
+      setOrders(await response.json());
+    } else {
+      setOrders([]);
     }
-    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (!isLoaded) return;
-    const payload: StoredAccount = { profile, addresses, orders };
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [profile, addresses, orders, isLoaded]);
+    (async () => {
+      const response = await fetch("/api/auth/me");
+      const body = await response.json();
+      setCustomer(body.customer ?? null);
+      setIsLoaded(true);
+    })();
+  }, []);
 
-  function updateProfile(next: CustomerProfile) {
-    setProfile(next);
-  }
+  useEffect(() => {
+    if (customer) {
+      refreshOrders();
+    } else {
+      setOrders([]);
+    }
+  }, [customer, refreshOrders]);
 
-  function addAddress(address: Omit<SavedAddress, "id">) {
-    const newAddress: SavedAddress = { ...address, id: `addr-${Date.now()}` };
-    setAddresses((current) => {
-      const shouldBeDefault = current.length === 0 || newAddress.isDefault;
-      const withFlag = { ...newAddress, isDefault: shouldBeDefault };
-      const updated = shouldBeDefault
-        ? current.map((a) => ({ ...a, isDefault: false }))
-        : current;
-      return [...updated, withFlag];
+  async function login(phone: string, password: string) {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, password }),
     });
-    return newAddress;
+    const result = await parseErrorResponse(response);
+    if (!result.error) {
+      const body = await response.json();
+      setCustomer(body.customer);
+    }
+    return result;
   }
 
-  function updateAddress(id: string, patch: Partial<SavedAddress>) {
-    setAddresses((current) => current.map((a) => (a.id === id ? { ...a, ...patch } : a)));
+  async function signup(input: SignupInput) {
+    const response = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    const result = await parseErrorResponse(response);
+    if (!result.error) {
+      const body = await response.json();
+      setCustomer(body.customer);
+    }
+    return result;
   }
 
-  function removeAddress(id: string) {
-    setAddresses((current) => current.filter((a) => a.id !== id));
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setCustomer(null);
   }
 
-  function setDefaultAddress(id: string) {
-    setAddresses((current) => current.map((a) => ({ ...a, isDefault: a.id === id })));
+  async function updateProfile(patch: { name?: string; email?: string }) {
+    const response = await fetch("/api/auth/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    const result = await parseErrorResponse(response);
+    if (!result.error) {
+      const body = await response.json();
+      setCustomer(body.customer);
+    }
+    return result;
   }
 
-  // The order itself (id/createdAt included) is created server-side via
-  // POST /api/orders so admin has a shared record of it; this just mirrors
-  // that same order into this customer's own local "My Account" history.
-  function recordOrder(order: OrderRecord) {
-    setOrders((current) => [order, ...current]);
+  async function addAddress(address: Omit<SavedAddress, "id">) {
+    const response = await fetch("/api/auth/addresses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(address),
+    });
+    const result = await parseErrorResponse(response);
+    if (!result.error) {
+      const body = await response.json();
+      setCustomer(body.customer);
+    }
+    return result;
+  }
+
+  async function updateAddress(id: string, patch: Partial<SavedAddress>) {
+    const response = await fetch(`/api/auth/addresses/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    const result = await parseErrorResponse(response);
+    if (!result.error) {
+      const body = await response.json();
+      setCustomer(body.customer);
+    }
+    return result;
+  }
+
+  async function removeAddress(id: string) {
+    const response = await fetch(`/api/auth/addresses/${id}`, { method: "DELETE" });
+    const result = await parseErrorResponse(response);
+    if (!result.error) {
+      const body = await response.json();
+      setCustomer(body.customer);
+    }
+    return result;
+  }
+
+  async function setDefaultAddress(id: string) {
+    return updateAddress(id, { isDefault: true });
   }
 
   return (
     <AccountContext.Provider
       value={{
-        profile,
+        customer,
+        isLoggedIn: customer !== null,
+        isLoaded,
+        login,
+        signup,
+        logout,
         updateProfile,
-        addresses,
         addAddress,
         updateAddress,
         removeAddress,
         setDefaultAddress,
         orders,
-        recordOrder,
-        isLoaded,
+        refreshOrders,
       }}
     >
       {children}
