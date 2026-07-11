@@ -33,6 +33,9 @@ yarn-error.log*
 /data/customer-accounts.json
 /data/auth-secret.json
 
+# internal business docs — not meant for the public repo
+/docs/
+
 # vercel
 .vercel
 

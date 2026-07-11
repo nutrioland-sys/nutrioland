@@ -51,11 +51,6 @@ export interface Testimonial {
   avatar: string;
 }
 
-export interface DeliverySector {
-  city: "Islamabad" | "Rawalpindi";
-  sector: string;
-}
-
 export interface GeoPin {
   lat: number;
   lng: number;

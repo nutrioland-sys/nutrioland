@@ -3,7 +3,6 @@
 import { useState, type FormEvent } from "react";
 import {
   calculateDeliveryFee,
-  DELIVERY_SECTORS,
   DELIVERY_TIME_SLOTS,
   formatPKR,
   getEffectivePrice,
@@ -134,29 +133,14 @@ export default function OrderForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="text-sm font-semibold text-slate-800">Sector</label>
-          <select
+          <label className="text-sm font-semibold text-slate-800">Area</label>
+          <input
             required
             value={sector}
             onChange={(event) => setSector(event.target.value)}
+            placeholder="e.g. F-10, Islamabad"
             className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-          >
-            <option value="">Select…</option>
-            <optgroup label="Islamabad">
-              {DELIVERY_SECTORS.filter((s) => s.city === "Islamabad").map((s) => (
-                <option key={`${s.city}-${s.sector}`} value={`${s.sector}, Islamabad`}>
-                  {s.sector}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Rawalpindi">
-              {DELIVERY_SECTORS.filter((s) => s.city === "Rawalpindi").map((s) => (
-                <option key={`${s.city}-${s.sector}`} value={`${s.sector}, Rawalpindi`}>
-                  {s.sector}
-                </option>
-              ))}
-            </optgroup>
-          </select>
+          />
         </div>
         <div>
           <label className="text-sm font-semibold text-slate-800">Delivery slot</label>

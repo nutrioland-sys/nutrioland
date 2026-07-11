@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useState, type FormEvent } from "react";
-import { DELIVERY_SECTORS } from "@/lib/data";
 import type { GeoPin, SavedAddress } from "@/lib/types";
 
 const LocationPicker = dynamic(() => import("./LocationPicker"), {
@@ -56,31 +55,16 @@ export default function AddressForm({
         </div>
         <div>
           <label htmlFor="address-sector" className="text-sm font-semibold text-slate-800">
-            Sector
+            Area
           </label>
-          <select
+          <input
             id="address-sector"
             required
             value={sector}
             onChange={(event) => setSector(event.target.value)}
+            placeholder="e.g. F-10, Islamabad"
             className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-          >
-            <option value="">Select…</option>
-            <optgroup label="Islamabad">
-              {DELIVERY_SECTORS.filter((s) => s.city === "Islamabad").map((s) => (
-                <option key={`${s.city}-${s.sector}`} value={`${s.sector}, Islamabad`}>
-                  {s.sector}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Rawalpindi">
-              {DELIVERY_SECTORS.filter((s) => s.city === "Rawalpindi").map((s) => (
-                <option key={`${s.city}-${s.sector}`} value={`${s.sector}, Rawalpindi`}>
-                  {s.sector}
-                </option>
-              ))}
-            </optgroup>
-          </select>
+          />
         </div>
       </div>
 

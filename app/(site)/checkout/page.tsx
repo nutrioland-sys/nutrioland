@@ -8,7 +8,6 @@ import { useAccount } from "@/lib/account-context";
 import { useCart } from "@/lib/cart-context";
 import {
   calculateDeliveryFee,
-  DELIVERY_SECTORS,
   DELIVERY_TIME_SLOTS,
   formatPKR,
   getEffectivePrice,
@@ -316,32 +315,17 @@ export default function CheckoutPage() {
                     className="flex items-center gap-1.5 text-sm font-semibold text-slate-800"
                   >
                     <MapPinIcon className="h-4 w-4 text-brand" />
-                    Delivery sector
+                    Area
                   </label>
-                  <select
+                  <input
                     id="checkout-sector"
                     required
-                    disabled={isLoggedIn && selectedAddressId !== null}
+                    readOnly={isLoggedIn && selectedAddressId !== null}
                     value={sector}
                     onChange={(event) => setSector(event.target.value)}
+                    placeholder="e.g. F-10, Islamabad"
                     className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:bg-slate-50 disabled:text-slate-500"
-                  >
-                    <option value="">Select your sector…</option>
-                    <optgroup label="Islamabad">
-                      {DELIVERY_SECTORS.filter((s) => s.city === "Islamabad").map((s) => (
-                        <option key={`${s.city}-${s.sector}`} value={`${s.sector}, Islamabad`}>
-                          {s.sector}
-                        </option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Rawalpindi">
-                      {DELIVERY_SECTORS.filter((s) => s.city === "Rawalpindi").map((s) => (
-                        <option key={`${s.city}-${s.sector}`} value={`${s.sector}, Rawalpindi`}>
-                          {s.sector}
-                        </option>
-                      ))}
-                    </optgroup>
-                  </select>
+                  />
                 </div>
 
                 <div>
@@ -713,30 +697,15 @@ function SignUpCard({
 
       <div>
         <label htmlFor="signup-sector" className="text-sm font-semibold text-slate-800">
-          Delivery sector <span className="font-normal text-slate-400">(optional)</span>
+          Area <span className="font-normal text-slate-400">(optional)</span>
         </label>
-        <select
+        <input
           id="signup-sector"
           value={sector}
           onChange={(event) => setSector(event.target.value)}
+          placeholder="e.g. F-10, Islamabad"
           className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-        >
-          <option value="">Select your sector…</option>
-          <optgroup label="Islamabad">
-            {DELIVERY_SECTORS.filter((s) => s.city === "Islamabad").map((s) => (
-              <option key={`${s.city}-${s.sector}`} value={`${s.sector}, Islamabad`}>
-                {s.sector}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="Rawalpindi">
-            {DELIVERY_SECTORS.filter((s) => s.city === "Rawalpindi").map((s) => (
-              <option key={`${s.city}-${s.sector}`} value={`${s.sector}, Rawalpindi`}>
-                {s.sector}
-              </option>
-            ))}
-          </optgroup>
-        </select>
+        />
       </div>
 
       <div>

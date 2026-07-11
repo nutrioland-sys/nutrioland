@@ -1,4 +1,4 @@
-import type { DeliverySector, Product, Testimonial } from "./types";
+import type { Product, Testimonial } from "./types";
 
 /**
  * PLACEHOLDER CONTENT — replace before launch.
@@ -69,21 +69,3 @@ export const TESTIMONIALS: Testimonial[] = [
   },
 ];
 
-export const DELIVERY_SECTORS: DeliverySector[] = [
-  { city: "Islamabad", sector: "F-6" },
-  { city: "Islamabad", sector: "F-7" },
-  { city: "Islamabad", sector: "F-8" },
-  { city: "Islamabad", sector: "F-10" },
-  { city: "Islamabad", sector: "F-11" },
-  { city: "Islamabad", sector: "G-6" },
-  { city: "Islamabad", sector: "G-9" },
-  { city: "Islamabad", sector: "G-10" },
-  { city: "Islamabad", sector: "G-11" },
-  { city: "Islamabad", sector: "Bahria Town Islamabad" },
-  { city: "Islamabad", sector: "DHA Islamabad" },
-  { city: "Rawalpindi", sector: "Saddar" },
-  { city: "Rawalpindi", sector: "Satellite Town" },
-  { city: "Rawalpindi", sector: "Bahria Town Phase 4-8" },
-  { city: "Rawalpindi", sector: "Askari" },
-  { city: "Rawalpindi", sector: "Chaklala Scheme 3" },
-];
